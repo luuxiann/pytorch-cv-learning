@@ -1,0 +1,4 @@
+提交文件到暂存区：git add <file>；
+提交一个版本：git commit -m < 提交信息 >；
+推送到远端仓库：git push -u origin main；
+给版本打标签：git tag <tagname> <commit id>；
