@@ -1,15 +1,33 @@
 # python学习
 教程：https://www.runoob.com/python/python-tutorial.html
 ## 基础语句
-##### 输出 
-> print("hello world!")
-> #输出变量x的值
-> print(x)
-##### 等待用户输入
-> raw_input("按下 enter 键退出，其他任意键显示...\n")
-##### 变量定义赋值
-> 变量名 = 变量值 
-##### 条件语句
+#### 输出 
+```
+print("hello world!")
+#输出变量x的值
+print(x)
+```
+#### 等待用户输入
+```
+#从标准输入读取一个行，并返回一个字符串（去掉结尾的换行符）
+raw_input("按下 enter 键退出，其他任意键显示...\n")
+#举例
+str = raw_input("请输入：")
+print(str)
+
+#和 raw_input() 函数基本类似，但是 input 可以接收一个Python表达式作为输入，并将运算结果返回
+input()
+#举例
+str = input("请输入：")
+print ("你输入的内容是: ", str)
+   请输入：[x*5 for x in range(2,10,2)]
+   你输入的内容是:  [10, 20, 30, 40]
+```
+#### 变量定义赋值
+```
+变量名 = 变量值
+ ```
+#### 条件语句
 ```
  if 判断条件1:
     执行语句1……
@@ -21,8 +39,8 @@ else:
     执行语句4……
 ```
 python 并不支持 switch 语句,有多个条件时可使用括号来区分判断的先后顺序
-##### 循环语句
-###### while
+#### 循环语句
+##### while
 ```
 while 判断条件：
     执行语句   #与该句缩进字符相同的语句均为while满足执行条件时会运行的语句
@@ -33,7 +51,7 @@ while 判断条件：
 else :
     执行语句
 ```
-###### for
+##### for
 ```
 for iterating_var in sequence:
    执行语句
@@ -46,29 +64,29 @@ else  ：
 ```
 实例：![python_learning1](./pictures/python_learning8.png)
 ![python_learning1](./pictures/python_learning9.png)
-###### 循环嵌套
+##### 循环嵌套
 注意缩进，同一级循环的缩进格式要相同
-###### break 、 continue 和pass
+##### break 、 continue 和pass
 break 来跳出循环，continue 用于跳过该次循环，pass 是空语句，是为了保持程序结构的完整性。
 pass 不做任何事情，一般用做占位语句，不影响输出结果。
 #### 删除语句
-```
-del var1,var2
-```
+```del var1,var2```
 
 ## 基础语法
 1. 以下划线开头的标识符是有特殊意义的。以单下划线开头 _foo 的代表不能直接访问的类属性，需通过类提供的接口进行访问，不能用 from xxx import * 而导入。
 1. 以双下划线开头的 __foo 代表类的私有成员，以双下划线开头和结尾的 __foo__ 代表 Python 里特殊方法专用的标识，如 __init__() 代表类的构造函数。
 1. Python 可以同一行显示多条语句，方法是用分号 ; 分开，如：
-   > print ('hello');print ('runoob');
+   ```print ('hello');print ('runoob');```
 1. python保留字符
    ![python_learning1](./pictures/python_learning1.png)
 1. 注意所有代码块语句必须包含相同的缩进空白数量
 1. 以新行作为语句的结束符，但可以使用斜杠（ \）将一行的语句分为多行显示。语句中包含 [], {} 或 () 括号则不需要使用多行连接符。
 1. 单行注释用#开头，多行注释使用三个单引号 ''' 或三个双引号 """
 1. 引号( ' )、双引号( " )、三引号( ''' 或 """ ) 表示字符串。三引号可以由多行组成，编写多行文本的快捷语法，常用于文档字符串，在文件的特定地点，被当做注释（头尾引号各自单独一行，把要注释的内容夹在中间）。
-   > paragraph = """这是一个段落。
-   > 包含了多个语句"""
+   ```
+   paragraph = """这是一个段落。
+   包含了多个语句"""
+   ```
 
 ## 数据类型
 ##### Numbers（数字）
@@ -159,10 +177,11 @@ x//y:取整除 - 返回商的整数部分（向下取整）
 ![python_learning](./pictures/python_learning7.png)
 
 ## 函数
-#### 内建函数
+#### 内置函数
 | ![python_learning](./pictures/python_learning17.png)  | ![python_learning](./pictures/python_learning18.png) |![python_learning](./pictures/python_learning19.png) |
 |:--------------------:|:--------------------:|:--------------------:|
 | ![python_learning](./pictures/python_learning21.png)  | ![python_learning](./pictures/python_learning24.png) |![python_learning](./pictures/python_learning25.png) |
+其他内置函数见https://www.runoob.com/python/python-built-in-functions.html
 #### 定义函数
 1. 语法
 ```
@@ -302,3 +321,64 @@ print time.mktime(time.strptime(a,"%a %b %d %H:%M:%S %Y"))
 ![python_learning](./pictures/python_learning31.png)
 | ![python_learning](./pictures/python_learning29.png)  | ![python_learning](./pictures/python_learning30.png) |
 |--------------------|--------------------|
+
+## 文件I/O
+#### 基本的 I/O 函数
+```
+# 打开一个文件，创建一个file对象
+file object = open(file_name [, access_mode][, buffering])
+# 刷新缓冲区里任何还没写入的信息，并关闭该文件
+fileObject.close()
+# 将任何字符串写入一个打开的文件，不会在字符串的结尾添加换行符('\n')
+fileObject.write(string)
+#从一个打开的文件中读取一个字符串,count是要从已打开文件中读取的字节计数,没有count则尽量读取全部文件内容
+fileObject.read([count])
+# 指针在当前文件位置
+tell()
+# 改变当前文件的位置。Offset变量表示要移动的字节数。From变量指定开始移动字节的参考位置
+seek（offset [,from]）
+# 查看文件内容
+cat file_name
+
+import os
+# 重命名
+os.rename(current_file_name, new_file_name)
+# 删除文件
+os.remove(file_name)
+# 在当前目录下创建新的目录，newdir为新的目录名
+os.mkdir("newdir")
+# 改变当前的目录到newdir
+os.chdir("newdir")
+# 显示当前的工作目录
+os.getcwd()
+# 删除目录，删除之前，它的所有内容应该先被清除。
+os.rmdir('dirname')
+```
+注：
+1. file_name：file_name变量是一个包含了你要访问的文件名称的字符串值。
+1. access_mode：access_mode决定了打开文件的模式：只读，写入，追加等。所有可取值见如下的完全列表。这个参数是非强制的，默认文件访问模式为只读(r)。
+1. buffering:如果buffering的值被设为0，就不会有寄存。如果buffering的值取1，访问文件时会寄存行。如果将buffering的值设为大于1的整数，表明了这就是的寄存区的缓冲大小。如果取负值，寄存区的缓冲大小则为系统默认。
+
+|![python_learning](./pictures/p1.png)|![python_learning](./pictures/p2.png)|![python_learning](./pictures/p3.png)|
+|---|---|---|
+注：在Python 3中，softspace属性已经被移除了。softspace是Python 2中用于控制print语句行为的属性，但在Python 3中不再存在。
+#### File(文件) 方法
+open() 方法
+   1. 用于打开一个文件，并返回文件对象，在对文件进行处理过程都需要使用到这个函数，如果该文件无法被打开，会抛出 OSError。
+   1. 使用 open() 方法一定要保证关闭文件对象，即调用 close() 方法。
+   ```
+   open(file, mode='r')
+   open(file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None)
+   file: 必需，文件路径（相对或者绝对路径）。
+   mode: 可选，文件打开模式
+   buffering: 设置缓冲
+   encoding: 一般使用utf8
+   errors: 报错级别
+   newline: 区分换行符
+   closefd: 传入的file参数类型
+   opener: 设置自定义开启器，开启器的返回值必须是一个打开的文件描述符。
+   ```
+|![python_learning](./pictures/p5.png)|![python_learning](./pictures/p4.png)|
+|---|---|
+#### os文件/目录方法
+见 https://www.runoob.com/python/os-file-methods.html
