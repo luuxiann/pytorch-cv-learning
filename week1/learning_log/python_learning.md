@@ -51,6 +51,10 @@ else  ：
 ###### break 、 continue 和pass
 break 来跳出循环，continue 用于跳过该次循环，pass 是空语句，是为了保持程序结构的完整性。
 pass 不做任何事情，一般用做占位语句，不影响输出结果。
+#### 删除语句
+```
+del var1,var2
+```
 
 ## 基础语法
 1. 以下划线开头的标识符是有特殊意义的。以单下划线开头 _foo 的代表不能直接访问的类属性，需通过类提供的接口进行访问，不能用 from xxx import * 而导入。
@@ -71,20 +75,50 @@ pass 不做任何事情，一般用做占位语句，不影响输出结果。
 * int（有符号整型）
 * long（长整型，也可以代表八进制和十六进制）
 * float（浮点型）
-* complex（复数）
+* complex（复数）: a + bj 或者 complex(a,b) a,b为浮点型
+
 ##### String（字符串）
- ![python_learning](./pictures/python_learning2.png)
+ |![python_learning](./pictures/python_learning2.png)||
+ |--|--|
+ |![python_learning](./pictures/python_learning13.png)|![python_learning](./pictures/python_learning15.png)|
+ |![python_learning](./pictures/python_learning14.png)|![python_learning](./pictures/python_learning16.png)|
+
 ##### List（列表）
 列表可以完成大多数集合类的数据结构实现。它支持字符，数字，字符串甚至可以包含列表（即嵌套）。
  ![python_learning](./pictures/python_learning3.png)
+```
+list = []          ## 空列表
+list.append('Google')   ## 使用 append() 添加元素
+list.append('Runoob')
+print list
+['Google', 'Runoob']  ## 输出
+del list[2]    ##使用del删除列表第三个元素
+del list       ##使用del删除列表
+```
+| ![python_learning](./pictures/python_learning20.png)  |![python_learning](./pictures/python_learning22.png)|
+|:--------------------:|:--------------------:|
+
 ##### Tuple（元组）
 同List区别在于Tuple只读，不可修改
+元组不可修改和删除元素，但可组合或直接用del删除整个元组
  ![python_learning](./pictures/python_learning4.png)
+ ![python_learning](./pictures/python_learning23.png)
+
 ##### Dictionary（字典）
 列表是有序的对象集合，字典是无序的对象集合。
 字典当中的元素是通过键来存取的，而不是通过偏移存取。
-字典由索引(key)和它对应的值value组成。
- ![python_learning](./pictures/python_learning5.png)
+字典由索引(key)和它对应的值value组成。键 ：值
+不允许同一个键出现两次。创建时如果同一个键被赋值两次，后一个值会被记住
+键必须不可变，所以可以用数字，字符串或元组充当，所以用列表就不行
+ ![python_learning](./pictures/python_learning5.png)|![python_learning](./pictures/python_learning26.png)|
+|:--------------------:|:--------------------:|
+```
+tinydict['Age'] = 8           # 更新
+tinydict['School'] = "RUNOOB" # 添加
+del tinydict['Name']          # 删除键是'Name'的条目
+tinydict.clear()              # 清空字典所有条目
+del tinydict                  # 删除字典
+```
 
 ## 数据类型转换
 ![python_learning](./pictures/python_learning6.png)
@@ -123,3 +157,148 @@ x//y:取整除 - 返回商的整数部分（向下取整）
 > " x not in y " :
 #### 运算符优先级
 ![python_learning](./pictures/python_learning7.png)
+
+## 函数
+#### 内建函数
+| ![python_learning](./pictures/python_learning17.png)  | ![python_learning](./pictures/python_learning18.png) |![python_learning](./pictures/python_learning19.png) |
+|:--------------------:|:--------------------:|:--------------------:|
+| ![python_learning](./pictures/python_learning21.png)  | ![python_learning](./pictures/python_learning24.png) |![python_learning](./pictures/python_learning25.png) |
+#### 定义函数
+1. 语法
+```
+def functionname( parameters ):
+   "函数_文档字符串"          #函数的第一行语句可以选择性地使用文档字符串—用于存放函数说明。
+   function_suite
+   return [expression]      #return [表达式] 结束函数，选择性地返回一个值给调用方。不带表达式的return相当于返回 None
+```
+2. 函数调用
+```
+def printme(str):
+   "打印任何传入的字符串"
+   print(str)
+   return
+# 调用函数
+printme("我要调用用户自定义函数!")
+printme("再次调用同一函数")
+```
+3. 参数传递
+   strings, tuples, 和 numbers 是不可更改的对象，而 list,dict 等则是可以修改的对象。不可变类型：类似 c++ 的值传递。可变类型：类似 c++ 的引用传递。
+   不定长参数：
+   ```
+   def functionname([formal_args,] *var_args_tuple ):
+   "函数_文档字符串"
+   function_suite
+   return [expression]
+
+   # 举例
+   def printinfo( arg1, *vartuple ):
+      "打印任何传入的参数"
+      print "输出: "
+      print arg1
+      for var in vartuple:
+         print var
+      return
+   printinfo( 10 )
+   printinfo( 70, 60, 50 )
+   ```
+3. 匿名函数
+   1. 规则
+      1. lambda只是一个表达式，函数体比def简单很多。
+      2. lambda的主体是一个表达式，而不是一个代码块。仅仅能在lambda表达式中封装有限的逻辑进去。
+      3. lambda函数拥有自己的命名空间，且不能访问自有参数列表之外或全局命名空间里的参数。
+      4. 虽然lambda函数看起来只能写一行，却不等同于C或C++的内联函数，后者的目的是调用小函数时不占用栈内存从而增加运行效率。
+   2. 语法
+   ```
+   lambda [arg1 [,arg2,.....argn]]:expression
+
+   #举例
+   sum = lambda arg1, arg2: arg1 + arg2
+   print "相加后的值为 : ", sum( 10, 20 )
+   print "相加后的值为 : ", sum( 20, 20 )
+   ```
+4. return语句和变量作用域
+
+## 模块
+模块(Module)，是一个 Python 文件，以 .py 结尾，包含了 Python 对象定义和Python语句。
+#### 语句
+```
+import module1[, module2[,... moduleN]]         # import 语句来引入模块
+from modname import name1[, name2[, ... nameN]] #从模块中导入一个指定的部分
+from modname import *                           #把一个模块的所有内容全都导入
+global VarName                                  #告诉 Python， VarName 是一个全局变量
+dir()                                           #是一个排好序的字符串列表，内容是一个模块里定义过的名字。
+                                                #返回的列表容纳了在一个模块里定义的所有模块，变量和函数。
+globals()                                       #在函数内部调用，返回的是所有在该函数里能访问的全局名字。
+locals()                                        #在函数内部调用，返回的是所有能在该函数里访问的命名。
+reload(module_name)                             #重新导入之前导入过的模块
+
+```
+#### 包
+包是一个分层次的文件目录结构，它定义了一个由模块及子包，和子包下的子包等组成的 Python 的应用环境。
+简单来说，包就是文件夹，但该文件夹下必须存在 \__init__.py 文件, 该文件的内容可以为空。\__init__.py 用于标识当前文件夹是一个包。
+#### 数学运算常用
+```
+# math 模块提供了许多对浮点数的数学运算函数。
+>>>import math
+>>>dir(math)
+['__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'acos', 'acosh', 'asin', 
+'asinh', 'atan', 'atan2', 'atanh', 'ceil', 'copysign', 'cos', 'cosh', 'degrees', 'e', 'erf', 
+'erfc', 'exp', 'expm1', 'fabs', 'factorial', 'floor', 'fmod', 'frexp', 'fsum', 'gamma', 'gcd', 
+'hypot', 'inf', 'isclose', 'isfinite', 'isinf', 'isnan', 'ldexp', 'lgamma', 'log', 'log10',
+ 'log1p', 'log2', 'modf', 'nan', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 
+ 'tau', 'trunc']
+
+# cmath 模块包含了一些用于复数运算的函数。
+>>> import cmath
+>>> dir(cmath)
+['__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'acos', 'acosh', 'asin',
+ 'asinh', 'atan', 'atanh', 'cos', 'cosh', 'e', 'exp', 'inf', 'infj', 'isclose', 'isfinite',
+  'isinf', 'isnan', 'log', 'log10', 'nan', 'nanj', 'phase', 'pi', 'polar', 'rect', 'sin',
+   'sinh', 'sqrt', 'tan', 'tanh', 'tau']
+
+# 区别是 cmath 模块运算的是复数，math 模块运算的是数学运算。
+# 实例
+>>> import cmath
+>>> a = -1
+>>> a = cmath.sqrt(a)
+>>> print(a)
+1j
+```
+
+| ![python_learning](./pictures/python_learning10.png)  | ![python_learning](./pictures/python_learning12.png) |
+|--------------------|--------------------|
+| ![python_learning](./pictures/python_learning11.png) | 
+
+#### 日期和时间
+```
+import time
+ticks = time.time()                    #获取当前时间戳
+localtime = time.localtime(time.time())#获取当前时间,从返回浮点数的时间戳方式向时间元组转换
+
+localtime = time.asctime( time.localtime(time.time()) )#获取格式化的时间
+Thu Apr  7 10:05:21 2016                               #输出
+# 格式化成2016-03-20 11:45:39形式
+print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
+# 格式化成Sat Mar 28 22:24:24 2016形式
+print time.strftime("%a %b %d %H:%M:%S %Y", time.localtime()) 
+# 将格式字符串转换为时间戳
+a = "Sat Mar 28 22:24:24 2016"
+print time.mktime(time.strptime(a,"%a %b %d %H:%M:%S %Y"))
+```
+```
+%y 两位数的年份表示（00-99）     %Y 四位数的年份表示（000-9999）
+%m 月份（01-12）                %d 月内中的一天（0-31）
+%H 24小时制小时数（0-23）        %I 12小时制小时数（01-12）
+%M 分钟数（00-59）               %S 秒（00-59）
+%a 本地简化星期名称              %A 本地完整星期名称
+%b 本地简化的月份名称            %B 本地完整的月份名称
+%c 本地相应的日期表示和时间表示   %j 年内的一天（001-366）
+%p 本地A.M.或P.M.的等价符        %U 一年中的星期数（00-53）星期天为星期的开始
+%w 星期（0-6）星期天,为星期的开始 %W 一年中的星期数（00-53）星期一为星期的开始
+%x 本地相应的日期表示            %X 本地相应的时间表示
+%Z 当前时区的名称                %% %号本身
+```
+![python_learning](./pictures/python_learning28.png)
+![python_learning](./pictures/python_learning31.png)
+| ![python_learning](./pictures/python_learning29.png)  | ![python_learning](./pictures/python_learning30.png) |
+|--------------------|--------------------|
