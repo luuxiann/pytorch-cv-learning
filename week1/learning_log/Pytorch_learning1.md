@@ -7,12 +7,13 @@ https://github.com/d2l-ai
 学习内容见：https://zh-v2.d2l.ai/ 
 以课件学习为主，视频学习为辅。
 
-#### 知识点
-##### 预备知识
-需导入torch
-```import torch```
+### 知识点
+#### 预备知识
+
 1. 张量(tensor) ： 表示一个由数值组成的数组，这个数组可能有多个维度。张量中的每个值都称为张量的 元素（element）。新的张量将存储在内存中，并采用基于CPU的计算。
    深度学习存储和操作数据的主要接口
+   需导入torch
+    ```import torch```
     ```
     x = torch.arange(12)        # arange 创建一个行向量 x
     x
@@ -137,3 +138,65 @@ https://github.com/d2l-ai
     代码见code/practice1
     结果：
     ![pytorch_learning1](./pictures/3.png)
+2. 数据预处理
+   使用pandas预处理原始数据，并将原始数据转换为张量格式的步骤。
+   1. 读取数据集
+        ```
+        # 导入pandas包并调用read_csv函数
+        import os
+        import pandas as pd
+
+        os.makedirs(os.path.join('..', 'data'), exist_ok=True)
+        data_file = os.path.join('..', 'data', 'house_tiny.csv')
+        with open(data_file, 'w') as f:
+            f.write('NumRooms,Alley,Price\n')  # 列名
+            f.write('NA,Pave,127500\n')  # 每行表示一个数据样本
+            f.write('2,NA,106000\n')
+            f.write('4,NA,178100\n')
+            f.write('NA,NA,140000\n')
+        data = pd.read_csv(data_file)
+        print(data)
+        >    NumRooms Alley   Price
+         0       NaN  Pave  127500
+         1       2.0   NaN  106000
+         2       4.0   NaN  178100
+         3       NaN   NaN  140000
+        ```
+    1. 处理缺失值 NaN
+        插值法用一个替代值弥补缺失值
+        ```
+        inputs, outputs = data.iloc[:, 0:2], data.iloc[:, 2]
+        # 处理 NumRooms离散值，用均值填充
+        inputs = inputs.fillna(inputs.mean())               
+        # 处理Alley类型值，转换成两列
+        inputs = pd.get_dummies(inputs, dummy_na=True)
+        print(inputs)
+        >         NumRooms  Alley_Pave  Alley_nan
+            0       3.0           1          0
+            1       2.0           0          1
+            2       4.0           0          1
+            3       3.0           0          1
+        ```
+        运行inputs = inputs.fillna(inputs.mean())时，因无法处理Alley类型，会报错
+            ![pytorch_learning](./pictures/4.png)
+
+    3. 转换为张量格式
+        ```
+        import torch
+
+        x = torch.tensor(inputs.to_numpy(dtype=float))
+        y = torch.tensor(outputs.to_numpy(dtype=float))
+        print(x)
+        print(y)
+        (tensor([[3., 1., 0.],
+                 [2., 0., 1.],
+                 [4., 0., 1.],
+                 [3., 0., 1.]], dtype=torch.float64),
+         tensor([127500., 106000., 178100., 140000.], dtype=torch.float64))
+    4. 练习
+        创建包含更多行和列的原始数据集。
+       1. 删除缺失值最多的列。
+       2. 将预处理后的数据集转换为张量格式。
+       代码见code/practice1
+        结果：
+        ![pytorch_learning](./pictures/5.png)
