@@ -51,6 +51,8 @@ https://github.com/d2l-ai
     > tensor([[2, 1, 4, 3],
               [1, 2, 3, 4],
               [4, 3, 2, 1]])
+    
+    B = A.clone()  # 通过分配新内存，将A的一个副本分配给B
     ```
     ```
     # 张量形状相同
@@ -193,10 +195,59 @@ https://github.com/d2l-ai
                  [4., 0., 1.],
                  [3., 0., 1.]], dtype=torch.float64),
          tensor([127500., 106000., 178100., 140000.], dtype=torch.float64))
+         ```
     4. 练习
         创建包含更多行和列的原始数据集。
        1. 删除缺失值最多的列。
        2. 将预处理后的数据集转换为张量格式。
-       代码见code/practice1
+       代码见code/practice2
         结果：
         ![pytorch_learning](./pictures/5.png)
+3. 线性代数
+   1. 标量（scalar）、向量
+   2. 长度、维度和形状
+        ```
+        len(x)      # 长度
+                    # 维度看有几行
+        x.shape     # 形状
+        ```
+    3. 矩阵
+        ```
+        A.T             # 矩阵的转置
+        ```
+    4. 张量算法的基本性质
+       1. 两个相同形状的张量相加或相乘，对应元素相加或相乘（Hadamard积）
+       2. 张量乘以或加上一个标量不会改变张量的形状，其中张量的每个元素都将与标量相加或相乘。
+    5. 降维
+        ```
+        A_sum_axis0 = A.sum(axis=0)     # 通过求和所有行的元素来降维（轴0）
+        A_sum_axis1 = A.sum(axis=1)     # 通过求和所有列的元素来降维（轴1）
+        A.sum(axis=[0, 1])或A.sum()     # 求和
+        A.mean()或 A.sum() / A.numel()  # 求平均值
+        # 沿指定轴降低张量的维度
+        A.mean(axis=0)或A.sum(axis=0) / A.shape[0]
+        ```
+    6. 不降维
+        ```
+        sum_A = A.sum(axis=1, keepdims=True)    # 计算总和或均值时保持轴数不变
+        A.cumsum(axis=0)                        # 沿某个轴计算A元素的累积总和,不会沿任何轴降低输入张量的维度。
+        ```
+    7. 乘
+        ```
+        torch.dot(A,B) 或 torch.sum(A * B)     # 点积（Dot Product）
+        torch.mv(A, B)                          # 向量积，A的列维数（沿轴1的长度）必须与B的维数（其长度）相同
+        torch.mm(A, B)                          # 矩阵-矩阵乘法（matrix-matrix multiplication
+        ``` 
+    8. 范数（norm）
+        向量的范数是表示一个向量有多大。
+        |![pytorch_learning](./pictures/6.png)|![pytorch_learning](./pictures/7.png)|
+        |--|--|
+        |![pytorch_learning](./pictures/9.png)|![pytorch_learning](./pictures/8.png)|
+
+        目标，或许是深度学习算法最重要的组成部分（除了数据），通常被表达为范数。
+    9. 练习
+        ![pytorch_learning](./pictures/12.png)
+        代码见code/practice3
+        结果：
+        |![pytorch_learning](./pictures/10.png)|![pytorch_learning](./pictures/11.png)|
+        |--|--|
