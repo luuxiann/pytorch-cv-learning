@@ -251,3 +251,38 @@ https://github.com/d2l-ai
         结果：
         |![pytorch_learning](./pictures/10.png)|![pytorch_learning](./pictures/11.png)|
         |--|--|
+1. 微积分
+   基础的求导微分知识已学过
+   1. 导数、积分和偏导数
+   代码见test4.py , 因为直接看没看懂，所以让AI给加了点注释
+   1. 梯度
+    ![pytorch_learning](./pictures/13.png)
+    1. 链式法则
+    ![pytorch_learning](./pictures/14.png)
+    1. 练习
+     ![pytorch_learning](./pictures/15.png)
+     答案：
+
+        |![pytorch_learning](./pictures/16.png)|![pytorch_learning](./pictures/1.jpg)|
+        |--|--|
+1. 自动微分
+   > 好像是计划中下周的内容？？哈哈，进度比自己想的快
+
+   目标：在复杂的模型，手工进行更新痛苦且经常容易出错的问题。
+   机制：深度学习框架通过自动计算导数，即自动微分（automatic        differentiation）来加快求导。 实际中，根据设计好的模型，系统会构建一个计算图（computational graph）， 来跟踪计算是哪些数据通过哪些操作组合起来产生输出。 自动微分使系统能够随后反向传播梯度。 这里，反向传播（backpropagate）意味着跟踪整个计算图，填充关于每个参数的偏导数。
+   **一个小例子：**
+    ```
+    x = torch.arange(4.0)
+    # 为张量开启自动求导功能，并提示此时梯度尚未计算（为 None）
+    x.requires_grad_(True)  # 等价于x=torch.arange(4.0,requires_grad=True),requires_grad=True用于开启自动求导追踪
+    print(x.grad)           # 用于访问张量 x 的梯度值,默认值是None
+    y = 2 * torch.dot(x, x) # y=2 * x^T * x
+    print(y)
+    y.backward()            # 调用反向传播函数来自动计算y关于x每个分量的梯度
+
+    # 在默认情况下，PyTorch会累积梯度，故计算x的另一个函数前我们需要清除之前的值
+    x.grad.zero_()
+    ```
+
+
+
