@@ -372,10 +372,73 @@ https://github.com/d2l-ai
         z对x的导数：z=15，且z=3*5=3*(x+3)（x从3到5循环加了3次），所以dz/dx=3
         5. 代码见code/practice5_4.py
         ![pytorch_learning](./pictures/23.png)
+1. 概率
+   机器学习就是做出预测
+   1. 基本概率论
+        ```
+        import torch
+        from torch.distributions import multinomial
+        from d2l import torch as d2l
 
+        # 除以 6 后，每个元素值为 1/6 ≈ 0.167，即每个点数出现的理论概率.
+        # fair_probs = tensor([0.1667, 0.1667, 0.1667, 0.1667, 0.1667, 0.1667])
+        fair_probs = torch.ones([6]) / 6
+        # Multinomial(n, probs) 是多项式分布，用于模拟 “n 次独立实验” 中每个结果出现的次数。
+        count1 = multinomial.Multinomial(1, fair_probs).sample()
+        count10 = multinomial.Multinomial(10, fair_probs).sample()
+        count100 = multinomial.Multinomial(100, fair_probs).sample()
+        count1000 = multinomial.Multinomial(1000, fair_probs).sample()
+        print("sample 1: ",count1)
+        print("sample 10: ",count10)
+        print("sample 100: ",count100)
+        print("sample 1000: ",count1000)
+        print("sample 1000: ",count1000/1000)
+        ```
+        ![pytorch_learning](./pictures/24.png)
+        ```
+        import torch
+        from torch.distributions import multinomial
+        from d2l import torch as d2l
 
+        fair_probs = torch.ones([6]) / 6
+        counts = multinomial.Multinomial(10, fair_probs).sample((500,))   # .sample((500,))：生成 500 组这样的实验结果。counts 是形状为 (500, 6) 的张量。
+        print(counts)
+        cum_counts = counts.cumsum(dim=0)   # 按 “行方向（dim=0）” 做累加。
+        print(cum_counts)
+        print(cum_counts.shape)
+        estimates = cum_counts / cum_counts.sum(dim=1, keepdims=True)    # 将 “累计次数” 转化为 “累计频率”
+        print(estimates)
+        print(estimates.shape)
 
+        d2l.set_figsize((6, 4.5))                                   # 设置图像尺寸
+        for i in range(6):                                          # 绘制 6 个点数的频率变化曲线
+            d2l.plt.plot(estimates[:, i].numpy(),                   # .numpy()：将 PyTorch 张量转为 NumPy 数组（d2l.plt 支持 NumPy 数组绘图）；
+                        label=("P(die=" + str(i + 1) + ")"))        # label：为每条曲线设置图例，标注对应点数的概率（如 P(die=1) 表示点数 1 的概率估计）。
+        d2l.plt.axhline(y=0.167, color='black', linestyle='dashed') # 绘制理论概率参考线
+        d2l.plt.gca().set_xlabel('Groups of experiments')
+        d2l.plt.gca().set_ylabel('Estimated probability')           # 设置坐标轴标签
+        d2l.plt.legend();                                           # 显示图例
+        d2l.plt.show()
 
+        ```
+        ![pytorch_learning](./pictures/25.png)
+        将看到某个数值的可能性量化为密度（density）。 
+    2. 处理多个随机变量
+        |![pytorch_learning](./pictures/26.png)|![pytorch_learning](./pictures/27.png)|
+        |--|--|
+    3. 期望和方差
+        ![pytorch_learning](./pictures/28.png)
+    4. 练习
+        ![pytorch_learning](./pictures/30.png)
+        答案：
+        1. 代码见code/practice6_1.py
+            |![pytorch_learning](./pictures/29.png)|![pytorch_learning](./pictures/31.png)|
+            |--|--|
+            | m = 500 , n = 10| m = 200 , n = 5|
+
+            ![pytorch_learning](./pictures/2.jpg)
+        2. 为了避免统计相关性导致的错误：
+            若两次运行同一测试，测试结果会因重复抽样或同一分布的固有相关性产生依赖，导致统计推断的 “显著性” 被高估。而运行两个不同的测试可利用测试间的独立性，更准确地判断结果是否由 “真实差异” 而非 “随机波动” 导致，从而提升推断的可靠性。
 
 
 
