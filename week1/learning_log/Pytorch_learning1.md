@@ -137,7 +137,7 @@ https://github.com/d2l-ai
     1. 将本节中的条件语句X == Y更改为X < Y或X > Y，然后看看你可以得到什么样的张量。
     2. 用其他形状（例如三维张量）替换广播机制中按元素操作的两个张量。结果是否与预期相同？
     **广播机制中的两个张量，要能通过复制整个行或列拓展为形状相同的张量。如形状为3 X 4和4 X 3的两个张量就不能通过广播机制来进行运算。** 
-    代码见code/practice1
+    代码见code/practice1.py
     结果：
     ![pytorch_learning1](./pictures/3.png)
 2. 数据预处理
@@ -200,7 +200,7 @@ https://github.com/d2l-ai
         创建包含更多行和列的原始数据集。
        1. 删除缺失值最多的列。
        2. 将预处理后的数据集转换为张量格式。
-       代码见code/practice2
+       代码见code/practice2.py
         结果：
         ![pytorch_learning](./pictures/5.png)
 3. 线性代数
@@ -247,14 +247,14 @@ https://github.com/d2l-ai
         目标，或许是深度学习算法最重要的组成部分（除了数据），通常被表达为范数。
     9. 练习
         ![pytorch_learning](./pictures/12.png)
-        代码见code/practice3
+        代码见code/practice3.py
         结果：
         |![pytorch_learning](./pictures/10.png)|![pytorch_learning](./pictures/11.png)|
         |--|--|
 1. 微积分
    基础的求导微分知识已学过
    1. 导数、积分和偏导数
-   代码见test4.py , 因为直接看没看懂，所以让AI给加了点注释
+   代码见code/test4.py , 因为直接看没看懂，所以让AI给加了点注释
    1. 梯度
     ![pytorch_learning](./pictures/13.png)
     1. 链式法则
@@ -265,7 +265,7 @@ https://github.com/d2l-ai
 
         |![pytorch_learning](./pictures/16.png)|![pytorch_learning](./pictures/1.jpg)|
         |--|--|
-1. 自动微分
+1. 自动微分(autograd)
    > 好像是计划中下周的内容？？哈哈，进度比自己想的快
 
    目标：在复杂的模型，手工进行更新痛苦且经常容易出错的问题。
@@ -283,6 +283,103 @@ https://github.com/d2l-ai
     # 在默认情况下，PyTorch会累积梯度，故计算x的另一个函数前我们需要清除之前的值
     x.grad.zero_()
     ```
+    1. 非标量变量的反向传播
+        非标量张量调用backward()需要传入gradient参数
+        1. 若 y 是标量（如 y = x.sum()），直接调用 y.backward() 即可，PyTorch 会自动计算 y 对所有依赖的张量（如 x）的梯度。
+        2. 若 y 是非标量（如 y = x * x，形状与 x 相同），直接调用 y.backward() 会报错，因为 “非标量对张量的梯度” 是一个矩阵（雅可比矩阵），PyTorch 无法直接计算，需要通过 “梯度参数” 指定如何将其转化为标量的梯度。
+    
+        |![pytorch_learning](./pictures/17.png)|![pytorch_learning](./pictures/18.png)|
+        |--|--|
+        ```
+        # 对非标量调用backward需要传入一个gradient参数，该参数指定微分函数关于self的梯度。
+        # 本例只想求偏导数的和，所以传递一个1的梯度是合适的
+        x.grad.zero_()
+        y = x * x
+        # 对非标量 y 调用 backward，传入 gradient=全1张量
+        # 等价于y.backward(torch.ones(len(x)))
+        # torch.ones(len(x))等价于 torch.tensor([1.0, 1.0, 1.0])
+        y.sum().backward()
+        print(x.grad)                           # 输出：tensor([0., 2., 4., 6.])
+
+        x.grad.zero_()      # 清空梯度
+        y = x * x
+        y_sum = y.sum()     # 标量：14.0
+        y_sum.backward()    # 标量可直接求导
+
+        # 传入 gradient=[2,3,4]
+        y.backward(torch.tensor([2.0, 3.0, 4.0]))
+        print(x.grad)  # 输出：tensor([4., 12., 24.])
+        # 雅可比矩阵 × [2,3,4] = [2×2, 4×3, 6×4] = [4,12,24]，相当于计算 2*y[0] + 3*y[1] + 4*y[2] 对 x 的梯度。
+        ```
+    2. 分离计算
+     detach()的作用 : 控制梯度的传播范围
+        在 PyTorch 的自动求导中，计算图记录了张量的运算依赖关系。y.detach() 会创建一个新张量 u，它和 y 的数值完全相同，但断开了与原计算图的连接—— 即梯度不会从 u 反向传播到 y 的上游（比如 x） 
+        1. 冻结部分参数：让某些层的参数不更新（如迁移学习中冻结预训练模型的底层）。
+        2. 将中间结果视为 “常数”：在求导时忽略某部分计算对梯度的影响（如生成对抗网络中的 “截断梯度”）。
+        3. 减少计算量：避免不必要的梯度计算，提升效率。
+        ```
+        y = x * x
+        u = y.detach()          # 分离 y，得到 u（u 和 y 数值相同，但梯度不会传到 x）
+        z = u * x               # 此时 u 被视为“常数”,因此 x.grad 的值等于 u
+
+        z.sum().backward()
+        x.grad == u             # 验证梯度是否等于 u
+        > tensor([True, True, True, True])
+
+        x.grad.zero_()          # 清空梯度
+        y.sum().backward()      # 直接对 y = x² 的和求导
+        x.grad == 2 * x         # 验证梯度是否等于 2x
+        > tensor([True, True, True, True]) # 没有分离 y，所以计算图完整。
+        ```
+    1. Python控制流的梯度计算
+    PyTorch 的自动微分（autograd）具有动态图【动态计算图（运行时构建计算图）】特性，即使函数中包含 Python 控制流（如 while 循环、if 条件判断），也能准确计算梯度。这是因为 PyTorch 会在运行时记录张量的运算路径，再反向传播计算梯度。
+        1. 可以直接用 Python 原生的控制逻辑编写模型（无需学习特殊语法）；
+        2. 支持动态结构的模型（如循环神经网络 RNN，其循环次数随输入长度变化）；
+        3. 即使函数逻辑复杂（含条件分支、动态循环），梯度计算仍能 “自动且准确” 地完成。
+        打破了 “控制流会阻碍梯度计算” 的限制，让开发者可以用更自然的 Python 逻辑编写可微分的函数。
+        ```
+        def f(a):
+            b = a * 2
+            while b.norm() < 1000:                    # 只要 b 的2 - 范数（norm()，即 √(b²)）小于 1000
+                b = b * 2
+            if b.sum() > 0:
+                c = b
+            else:
+                c = 100 * b
+            return c
+
+        a = torch.randn(size=(), requires_grad=True)  # 创建需要求导的标量 a
+        d = f(a)                                      # 调用含控制流的函数 f
+        d.backward()                                  # 反向传播计算梯度
+        print(a.grad == d / a)                        # 输出：tensor(True)
+        # 对于任意 a，存在一个常数 k，使得 f(a) = k * a（即函数是分段线性的）
+        ```
+    1. 练习
+    
+        ![pytorch_learning](./pictures/19.png)
+        答案： 
+        1. 一阶导数是函数对自变量的 “直接变化率”，可通过一次反向传播计算。而二阶导数是 “导数的变化率”，需要对一阶导数的计算图再进行一次反向传播。
+        2. 如果需要多次调用 backward()（例如累积梯度），需在第一次 backward() 时添加 retain_graph=True 参数，强制保留计算图，否则会报错。
+        代码见code/practice5_2.py
+        ![pytorch_learning](./pictures/20.png)
+        3. backward() 要求标量输入，所以用 d.sum()
+         代码见code/practice5_3.py
+        ![pytorch_learning](./pictures/21.png)
+        4. 不能用y += 1, y += 1是原地操作,会破坏计算图中张量的历史记录，导致梯度无法正确追踪。将 y += 1 改为非原地操作（创建新张量）即可，例如用 y = y + 1 替代。
+        代码见code/practice5_4.py
+        ![pytorch_learning](./pictures/20.png)
+        分析过程：x=3 → 循环后y=5（3→4→5，循环3次）→ y=5不大于6 → z=5*3=15
+        z对x的导数：z=15，且z=3*5=3*(x+3)（x从3到5循环加了3次），所以dz/dx=3
+        5. 代码见code/practice5_4.py
+        ![pytorch_learning](./pictures/23.png)
+
+
+
+
+
+
+
+
 
 
 
