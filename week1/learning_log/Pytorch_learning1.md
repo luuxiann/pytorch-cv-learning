@@ -444,22 +444,24 @@ https://github.com/d2l-ai
 1. 线性回归（linear regression）
    回归（regression）是能为一个或多个自变量与因变量之间关系建模的一类方法。 在自然科学和社会科学领域，回归经常用来表示输入和输出之间的关系。
    在机器学习的术语中，数据集称为训练数据集（training data set） 或训练集（training set）。 每行数据称为样本（sample）， 也可以称为数据点（data point）或数据样本（data instance）。 把试图预测的目标称为标签（label）或目标（target）。 预测所依据的自变量称为特征（feature）或协变量（covariate）。
-   1. 基本元素
+   1. 基本元素（从模型到优化）
        1. 线性模型
         ![pytorch_learning](./pictures/32.png)
         1. 损失函数（loss function）
+        模型评估标准
         ![pytorch_learning](./pictures/33.png)
         ![pytorch_learning](./pictures/34.png)
-        1. 解析解
+        3. 解析解
          ![pytorch_learning](./pictures/35.png)
-        1. 随机梯度下降
+        4. 随机梯度下降
          用以训练难以优化的模型 （无法得到解析解的情况）
         ![pytorch_learning](./pictures/36.png)
         算法会使得损失向最小值缓慢收敛，但却不能在有限的步数内非常精确地达到最小值。
-        1. 用模型预测
+        4. 用模型预测
         给定特征估计目标的过程通常称为预测（prediction）或推断（inference） 
-    1. 矢量化加速
-    利用线性代数库，同时处理整个小批量的样本 
+    2. 矢量化加速
+    利用线性代数库，同时处理整个小批量的样本
+    本质：将标量运算转化为张量（向量 / 矩阵）运算，减少计算开销并降低出错概率。 
         ```
         import math
         import time
@@ -510,7 +512,7 @@ https://github.com/d2l-ai
         > 0.10727 sec
         > 0.00014 sec     # 矢量化代码通常会带来数量级的加速。
         ```
-    1. 正态分布与平方损失
+    3. 正态分布与平方损失
         ```
         import math
         import numpy as np
@@ -550,7 +552,7 @@ https://github.com/d2l-ai
         ```
         |![pytorch_learning](./pictures/38.png)|![pytorch_learning](./pictures/39.png)|
         |--|--|
-    1. 从线性回归到深度网络
+    4. 从线性回归到深度网络
         1. 神经网络图
          ![pytorch_learning](./pictures/40.png)
             > 一开始看名字没想起来是啥，看图想起来了
@@ -558,7 +560,9 @@ https://github.com/d2l-ai
             > 啊，生物学，想起了上过的生物信息学
 
         线性回归模型也是一个简单的神经网络
-1. 线性回归的从零开始实现
- 
+2. 线性回归的从零开始实现
+    深度学习训练的核心流程：数据生成→参数初始化→前向传播→反向传播→参数更新
+    教程代码见：code/linear_model.py
+    结果：![pytorch_learning](./pictures/41.png)
 
 
