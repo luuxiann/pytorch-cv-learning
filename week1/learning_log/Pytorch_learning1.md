@@ -446,11 +446,119 @@ https://github.com/d2l-ai
    在机器学习的术语中，数据集称为训练数据集（training data set） 或训练集（training set）。 每行数据称为样本（sample）， 也可以称为数据点（data point）或数据样本（data instance）。 把试图预测的目标称为标签（label）或目标（target）。 预测所依据的自变量称为特征（feature）或协变量（covariate）。
    1. 基本元素
        1. 线性模型
-        
+        ![pytorch_learning](./pictures/32.png)
+        1. 损失函数（loss function）
+        ![pytorch_learning](./pictures/33.png)
+        ![pytorch_learning](./pictures/34.png)
+        1. 解析解
+         ![pytorch_learning](./pictures/35.png)
+        1. 随机梯度下降
+         用以训练难以优化的模型 （无法得到解析解的情况）
+        ![pytorch_learning](./pictures/36.png)
+        算法会使得损失向最小值缓慢收敛，但却不能在有限的步数内非常精确地达到最小值。
+        1. 用模型预测
+        给定特征估计目标的过程通常称为预测（prediction）或推断（inference） 
+    1. 矢量化加速
+    利用线性代数库，同时处理整个小批量的样本 
+        ```
+        import math
+        import time
+        import numpy as np
+        import torch
+        from d2l import torch as d2l
 
+        n = 10000
+        a = torch.ones([n])
+        b = torch.ones([n])
 
+        # 计时器
+        class Timer:  #@save
+            """记录多次运行时间"""
+            def __init__(self):
+                self.times = []
+                self.start()
 
+            def start(self):
+                """启动计时器"""
+                self.tik = time.time()
 
+            def stop(self):
+                """停止计时器并将时间记录在列表中"""
+                self.times.append(time.time() - self.tik)
+                return self.times[-1]
 
+            def avg(self):
+                """返回平均时间"""
+                return sum(self.times) / len(self.times)
+
+            def sum(self):
+                """返回时间总和"""
+                return sum(self.times)
+
+            def cumsum(self):
+                """返回累计时间"""
+                return np.array(self.times).cumsum().tolist()
+
+        c = torch.zeros(n)
+        timer = Timer()
+        for i in range(n):
+            c[i] = a[i] + b[i]
+        print(f'{timer.stop():.5f} sec')
+        timer.start()
+        d = a + b
+        print(f'{timer.stop():.5f} sec' )    
+        > 0.10727 sec
+        > 0.00014 sec     # 矢量化代码通常会带来数量级的加速。
+        ```
+    1. 正态分布与平方损失
+        ```
+        import math
+        import numpy as np
+        import torch
+        from d2l import torch as d2l
+
+        def normal(x, mu, sigma):
+            """
+            定义正态分布概率密度函数
+            参数:
+                x: 输入的自变量（一维数组）
+                mu: 均值
+                sigma: 标准差
+            返回:
+                正态分布在x处的概率密度值
+            """
+            p = 1 / math.sqrt(2 * math.pi * sigma**2)  # 正态分布的归一化系数
+            return p * np.exp(-0.5 / sigma**2 * (x - mu)**2)  # 正态分布的指数部分
+
+        # 生成x的取值范围：从-7到7，步长0.01，用于绘制连续曲线
+        x = np.arange(-7, 7, 0.01)
+
+        # 定义多组均值（mu）和标准差（sigma）的组合，用于绘制不同的正态分布曲线
+        params = [(0, 1), (0, 2), (3, 1)]
+
+        # 调用d2l的绘图函数，绘制多条正态分布曲线
+        d2l.plot(
+            x,  # x轴数据
+            [normal(x, mu, sigma) for mu, sigma in params],  # y轴数据：每组参数对应的正态分布曲线
+            xlabel='x',  # x轴标签
+            ylabel='p(x)',  # y轴标签（概率密度）
+            figsize=(15, 10),  # 图像尺寸
+            legend=[f'mean {mu}, std {sigma}' for mu, sigma in params]  # 图例，标注每组参数
+        )
+
+        d2l.plt.show()
+        ```
+        |![pytorch_learning](./pictures/38.png)|![pytorch_learning](./pictures/39.png)|
+        |--|--|
+    1. 从线性回归到深度网络
+        1. 神经网络图
+         ![pytorch_learning](./pictures/40.png)
+            > 一开始看名字没想起来是啥，看图想起来了
+        2. 生物学
+            > 啊，生物学，想起了上过的生物信息学
+
+        线性回归模型也是一个简单的神经网络
+1. 线性回归的从零开始实现
+ 
 
 
