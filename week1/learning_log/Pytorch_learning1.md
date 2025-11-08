@@ -560,9 +560,48 @@ https://github.com/d2l-ai
             > 啊，生物学，想起了上过的生物信息学
 
         线性回归模型也是一个简单的神经网络
-2. 线性回归的从零开始实现
+2. 手动实现线性回归
     深度学习训练的核心流程：数据生成→参数初始化→前向传播→反向传播→参数更新
     教程代码见：code/linear_model.py
     结果：![pytorch_learning](./pictures/41.png)
+3. 使用 PyTorch 高层 API 实现线性回归
+    使用深度学习框架来简洁地实现上一节中的线性回归模型
+    教程代码见：code/linear_model2.py
+    在每个迭代周期里，我们将完整遍历一次数据集（train_data）， 不停地从中获取一个小批量的输入和相应的标签。 对于每一个小批量，我们会进行以下步骤:
+    1. 通过调用net(X)生成预测并计算损失l（前向传播）。
+    2. 通过进行反向传播来计算梯度。
+    3. 通过调用优化器来更新模型参数。
+    
+    使用PyTorch的高级API更简洁地实现模型。
+    结果：![pytorch_learning](./pictures/42.png)
+        训练后，w和b的估计误差很小（接近 0），表明模型成功学到了接近真实值的参数。
+    练习：
+    将MSELoss损失函数改成Huber损失函数
+    ```
+   # 定义Huber损失函数
+    def huber_loss(y_true, y_pred, delta=1.0):
+        error = y_true - y_pred  # 计算每个样本的误差（形状：(batch_size, 1)）
+        abs_error = torch.abs(error)  # 误差的绝对值
+        
+        # 向量化判断：用torch.where替代if-else，对每个样本分别应用损失公式
+        # torch.where(条件, 满足条件时的值, 不满足条件时的值)
+        huber_l = torch.where(
+            abs_error <= delta,  # 条件：误差绝对值≤delta
+            0.5 * torch.square(error),  # 满足条件：平方损失
+            delta * (abs_error - 0.5 * delta)  # 不满足条件：线性损失
+        )
+        return huber_l
 
-
+    # 训练
+    # 计算每个迭代周期后的损失，并打印来监控训练过程
+    num_epochs = 3
+    for epoch in range(num_epochs):
+        for X, y in data_iter:
+            l = huber_loss(net(X) ,y)
+            trainer.zero_grad()
+            l.mean().backward()
+            trainer.step()
+        total_loss = huber_loss(labels, net(features), delta=1.0)
+        print(f'epoch {epoch + 1}, average loss {total_loss.mean():f}')
+    ```
+    结果：![pytorch_learning](./pictures/43.png)

@@ -22,6 +22,7 @@ d2l.set_figsize()
 d2l.plt.scatter(features[:, (1)].detach().numpy(), labels.detach().numpy(), 1);
 
 # 读取数据集
+# 接收批量大小、特征矩阵和标签向量作为输入，生成大小为batch_size的小批量
 def data_iter(batch_size, features, labels):
     num_examples = len(features)
     indices = list(range(num_examples))
