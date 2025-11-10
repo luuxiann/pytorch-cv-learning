@@ -7,6 +7,48 @@ https://github.com/d2l-ai
 学习内容见：https://zh-v2.d2l.ai/ 
 以课件学习为主，视频学习为辅。
 
+### 配置过程
+配置ubuntu
+
+```
+sudo apt update
+sudo apt install build-essential
+sudo apt install python3.10         # 因为用的是Ubuntu 22.04.4，所以对应安装的是3.10，教程里的是3.8
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+bash                                         # 进入空环境
+pip install jupyter d2l torch torchvision    # 记事本，library
+
+# 由于Python 3.13与numpy 1.23.5不兼容导致安装错误
+# 解决
+conda deactivate                            # 退出当前环境（如果是base环境）
+conda create -n pytorch-env python=3.9      # 创建一个新的conda环境，指定Python 3.9或3.10（这些版本与PyTorch兼容性好）
+conda activate pytorch-env                  # 激活新环境
+pip install jupyter d2l torch torchvision   # 重新安装包 ps.这个方法装torch真的好慢,装了一晚上
+
+wget https://zh-v2.d2l.ai/d2l-zh.zip        # 记事本，2025.11.03
+sudo apt install zip                        # 解压工具
+unzip d2l-zh.zip                            # 解压文件
+sudo apt install git                        # 安装git
+cd pytorch
+cd ..
+# 下载课程幻灯片，但连不上github
+git clone https://github.com/d2l-ai/d2l-pytorch-slides-classic.git
+# 配置ssh密匙，改用ssh方法下载
+ls -al ~/.ssh                               # 检查是否已有SSH密钥
+ssh-keygen -t ed25519 -C "your_email"       # 生成新的SSH密钥（使用你的GitHub注册邮箱）
+eval "$(ssh-agent -s)"                      # 启动SSH代理
+ssh-add ~/.ssh/id_ed25519                   # 将SSH私钥添加到代理
+cat ~/.ssh/id_ed25519.pub                   # 显示公钥并手动复制
+# 最后将SSH密钥添加到GitHub
+git clone git@github.com:d2l-ai/d2l-pytorch-slides-classic.git
+jupyter notebook
+pip install rise
+pip install git+ssh://git@github.com/d2l-ai/d2l-zh@release
+pip install pandas
+```
+完成安装
+
 ### 知识点
 #### 预备知识
 
