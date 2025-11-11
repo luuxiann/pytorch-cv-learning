@@ -23,10 +23,79 @@ MDocAgent框架概述：这是一个支持多模态交互的多智能体系统�
 3. **Multi-Agent Systems** : 多智能体系统可以通过配置专业智能体分工协作，共同完成单一模型难以应对的任务。然而在DocQA应用中，由于需要整合多种模态信息，系统面临独特挑战。单纯叠加文本与图像智能体的输出，往往难以捕捉二者间的微妙交互——这种交互正是准确理解文档的关键。
 
 ### MDocAgent(details)
+5个阶段
 #### 文档预处理
 1. 目标：将文档语料库转换为适合文本与视觉分析的格式
 2. 技术：采用光学字符识别（OCR）与PDF解析技术相结合的方式提取文本内容。这种双管齐下的方法确保了对不同文档格式和结构的稳健文本提取。
 3. 该框架允许通过整合文本与视觉线索实现全面理解。预处理过程生成文档语料库的双重表征：文本表征由提取的文本片段构成，视觉表征则包含原始页面图像。
 #### 多模态上下文检索
 1. 目标：在同时兼顾文本和图像信息的基础上，从文档语料库中高效检索最相关的信息。
+2. 技术：使用ColBERT进行文本检索，使用ColPali进行图像检索，独立获取基于输入问题的前k个相关文本段和图像页面。
+![RAG](./pictures/RAG2.png)
+#### 初始分析和关键提取
+1. 目标：初步解读问题，并在检索到的上下文中精准定位关键信息。
+2. 技术：The general agent AG作为多模态整合器，接收检索到的文本上下文Tq和视觉上下文Iq，并整合两种模态中的信息，对这些多模态输入进行处理，然后初步生成答案aG。
+   The critical agent AC对接收问题q、检索到的上下文Tq和Iq，以及通用代理生成的初步答案aG这些输入进行细致分析，筛选出对准确回答问题至关重要的关键信息Tc和Ic。
+
+    |![RAG](./pictures/RAG3.png)|![RAG](./pictures/RAG4.png)|
+    |-|-|
+    |![RAG](./pictures/RAG5.png)|![RAG](./pictures/RAG6.png)|
+#### 专门代理处理
+1. 目标：通过运用前一阶段提取的关键信息指导的专业智能体进行分析。
+2. 技术：The text agentAT接收检索到的文本片段Tq和关键文本信息Tc作为输入，在其模态里对提供的文本片段进行深度分析，最终生成基于文本的详细答案aT。
+   The image agentAI接收检索到的图像Iq和关键视觉信息Ic，针对关键视觉信息Ic所标注的区域或特征进行图像处理，从视觉内容中提取有价值的信息，最终生成的视觉化AI答案aI
+#### 答案综合
+1. 目标：整合前序各阶段的多元输出，将初始的多模态理解与专业智能体分析相结合，生成全面精准的答案。
+2. 技术：The summarizing agent AS分别接收前面agent生成的答案aG、aT和aI，分析各智能体的答案，识别共性特征、差异点及互补洞见，并考量各智能体提供的佐证。通过化解智能体间的潜在冲突或分歧，整合各自优势，构建出最终答案aS。
+    ![RAG](./pictures/RAG7.png)
+
+### Experiment
+实验验证
+1. 相较于现有基于RAG的方法，MDocAgent能否有效提升文档理解准确率？
+2. 框架中的每个智能体是否发挥着关键作用？
+3. 该方法如何增强模型对文档的理解能力？
+#### 实验设置
+1. 实施细节：
+   1.  text agent： Llama-3.1-8B-Instruct 
+   2.  other four agents： Qwen2-VL-7B-Instruct 
+   3.  the text and image retrievers：ColBERTv2  and ColPali 
+   4.  每个示例提取1个或4个最高分片段作为输入上下文
+2. 数据集
+    这些评估数据集涵盖多种场景，包括开放域与封闭域、文本与视觉、长文档与短文档，确保评估的公平性和完整性。
+    MMLongBench
+    LongDocUrl
+    PaperTab
+    PaperText
+    FetaTab
+3. 评估指标
+在所有基准测试中，采用GPT-4o作为评估模型，参照Deng等人和Ma等人的方法，通过比较模型输出与参考答案的一致性，生成二元判定结果（正确/错误）。
+#### 主要研究结果
+结果：MDocAgent Outperforms All the Comparison Methods
+and Other LVLMs.
+    ![RAG](./pictures/MDocAgent_result.png)
+1. 在top-1检索方式下， MDocAgent 平均提高了12.1%，比当前最新提出的表现最亮眼的 M3DocRAG 还高。表明 MDocAgent 在应对信息过载、细节精准捕捉和跨模态理解等核心挑战方面，比现有方法更具优势。
+    1. 在FetaTab数据集上， MDocAgent 获得0.600的分数，超越 M3DocRAG 21.0%。
+    2. 在 PaperText 上， MDocAgent 得分为0.399，超越 M3DocRAG 16.7%。
+    3. 与最佳 LVLM（Qwen2.5-VL-7B）和基于文本-RAG（ColBERTv2+Llama-3.1-8B）的基准模型相比，MDocAgent 在所有测试中平均提升51.9%和23.7%。
+2. 在top-4检索方式下， MDocAgent在所有基准测试中仍表现最佳，并进一步扩大了领先优势。体现其有效整合多个检索项的能力。
+    1. 平均超越Qwen2.5-VL-7B 73.5%，展示了其有效利用额外上下文信息的能力。
+    2. 平均超越M3DocRAG 10.9%，同时比ColBERTv2+Llama-3.1- 8B提升了6.9%。
+    3. 相比之下，M3DocRAG在前4次检索中表现下降，表明在整合多个检索项方面存在局限性。   
+> top-1 retrieval:top-1检索方式，指信息检索系统中返回最相关单个结果的检索模式。
+> top-4 retrieval:前4项检索方式，指在信息检索过程中返回相关性最高的前4个结果，用于评估检索系统的性能表现。
+> Ablation Studies： 消融研究，用于分析模型中各组件对性能的影响
+#### 定量分析
+1. 消融实验
+![RAG](./pictures/RAG8.png)
+通过数据比对，可以看出每个智能体的重要性，去除任何一个智能体，都会导致性能的显著下降。
+2. 细粒度性能分析
+
+|![RAG](./pictures/RAG9.png)|![RAG](./pictures/RAG11.png)|
+|--|--|
+主要看基于MMLongBench数据集的结果。通过数据比对，可以看到
+   1. MDocAgent在所有证据模态类型中均优于所有 LVLM 基准模型。
+   2. 在top-1检索方式下，MDocAgent虽然在Figure类别中表现比M3DocRAG略差，但在Chart、Table和Text类别中展现出强劲实力，这充分体现了其处理文本与视觉信息的卓越能力。
+   3. 在top-4检索方式下，MDocAgent在所有类别中均实现性能提升，尤其在Figure类别中表现突出，彰显了其有效处理多样化信息源的强项。
+3. 
+![RAG](./pictures/RAG10.png)
 
