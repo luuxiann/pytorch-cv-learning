@@ -92,6 +92,7 @@ and Other LVLMs.
 
 |![RAG](./pictures/RAG9.png)|![RAG](./pictures/RAG11.png)|
 |--|--|
+
 主要看基于MMLongBench数据集的结果。通过数据比对，可以看到
    1. MDocAgent在所有证据模态类型中均优于所有 LVLM 基准模型。
    2. 在top-1检索方式下，MDocAgent虽然在Figure类别中表现比M3DocRAG略差，但在Chart、Table和Text类别中展现出强劲实力，这充分体现了其处理文本与视觉信息的卓越能力。
