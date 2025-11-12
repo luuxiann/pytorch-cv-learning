@@ -60,7 +60,7 @@ augs = torchvision.transforms.Compose([
 apply(img, augs)
 d2l.plt.show()
 ```
-（里面提到的实例都是torchvision.transforms模块内置的图像变换类，还是得回归torchvision官方的教程看看嘞，明天安排上）
+
 |![computer_vision](./pictures/c1.png)|![computer_vision](./pictures/c2.png)|
 |---|---|
 |原图|左右翻转|
@@ -200,7 +200,149 @@ train_with_data_aug(train_augs, test_augs, net)
 # d2l.plt.show()
 ```
 ![computer_vision](./pictures/cc1.png)
+![computer_vision](./pictures/c9.png)
+也是跑完了，昨晚不知道为什么还给电脑跑重启了。
 
+## 微调（fine-tuning）
+
+微调是一种迁移学习（transfer learning）技术，其核心思想是将在大规模数据集上预训练好的模型参数迁移到新的任务中，通过在新任务的数据集上进行少量训练来调整这些参数，从而快速实现新任务的模型训练并获得较好的性能。这是因为预训练模型已经学习到了通用的特征提取能力，这些能力在许多相关任务中是可复用的。
+
+#### 步骤
+1. 在源数据集（例如ImageNet数据集）上预训练神经网络模型，即源模型。
+2. 创建一个新的神经网络模型，即目标模型。这将复制源模型上的所有模型设计及其参数（输出层除外）。我们假定这些模型参数包含从源数据集中学到的知识，这些知识也将适用于目标数据集。我们还假设源模型的输出层与源数据集的标签密切相关；因此不在目标模型中使用该层。
+3. 向目标模型添加输出层，其输出数是目标数据集中的类别数。然后随机初始化该层的模型参数。
+4. 在目标数据集（如椅子数据集）上训练目标模型。输出层将从头开始进行训练，而所有其他层的参数将根据源模型的参数进行微调。
+
+#### 热狗识别实例
+
+```
+import torch
+from torch import nn
+from torchvision import transforms, datasets
+from d2l import torch as d2l
+
+# 定义图像增广方法，用于数据增强
+data_transforms = {
+    'train': transforms.Compose([
+        transforms.RandomResizedCrop(224),  # 随机裁剪并调整大小为224x224
+        transforms.RandomHorizontalFlip(),  # 随机水平翻转
+        transforms.ToTensor(),  # 转换为张量
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 标准化
+    ]),
+    'val': transforms.Compose([
+        transforms.Resize(256),  # 调整大小为256
+        transforms.CenterCrop(224),  # 中心裁剪为224x224
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
+
+# 加载数据集
+data_dir = './hotdog'  # 数据集路径
+image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
+                  for x in ['train', 'val']}
+dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=32,
+                                             shuffle=True, num_workers=4)
+              for x in ['train', 'val']}
+dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+class_names = image_datasets['train'].classes
+
+# 获取设备（GPU或CPU）
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# 加载预训练的ResNet-18模型
+model_ft = torchvision.models.resnet18(pretrained=True)
+# 获取最后一层的输入特征数
+num_ftrs = model_ft.fc.in_features
+# 修改输出层，适应二分类任务（热狗和非热狗）
+model_ft.fc = nn.Linear(num_ftrs, 2)
+model_ft = model_ft.to(device)
+
+# 定义损失函数和优化器
+criterion = nn.CrossEntropyLoss()
+optimizer_ft = torch.optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+
+# 学习率调度器，每7个epoch将学习率乘以0.1
+exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+
+# 训练模型
+def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+    since = time.time()
+
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+
+    for epoch in range(num_epochs):
+        print(f'Epoch {epoch}/{num_epochs - 1}')
+        print('-' * 10)
+
+        # 每个epoch都有训练和验证阶段
+        for phase in ['train', 'val']:
+            if phase == 'train':
+                model.train()  # 训练模式
+            else:
+                model.eval()   # 评估模式
+
+            running_loss = 0.0
+            running_corrects = 0
+
+            # 迭代数据
+            for inputs, labels in dataloaders[phase]:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+
+                # 清零梯度
+                optimizer.zero_grad()
+
+                # 前向传播
+                # 训练时保留梯度
+                with torch.set_grad_enabled(phase == 'train'):
+                    outputs = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+
+                    # 训练阶段进行反向传播和参数更新
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
+
+                # 统计
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += torch.sum(preds == labels.data)
+            if phase == 'train':
+                scheduler.step()
+
+            epoch_loss = running_loss / dataset_sizes[phase]
+            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+
+            # 深度复制模型
+            if phase == 'val' and epoch_acc > best_acc:
+                best_acc = epoch_acc
+                best_model_wts = copy.deepcopy(model.state_dict())
+
+        print()
+
+    time_elapsed = time.time() - since
+    print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+    print(f'Best val Acc: {best_acc:4f}')
+
+    # 加载最佳模型权重
+    model.load_state_dict(best_model_wts)
+    return model
+
+# 训练模型，迭代25个epoch
+model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
+```
+
+在上述代码中，首先定义了适用于训练集和验证集的图像增广方法，以增强模型的泛化能力。然后加载了预训练的ResNet-18模型，并根据热狗识别的二分类任务修改了输出层。在训练过程中，使用了交叉熵损失函数和SGD优化器，并通过学习率调度器调整学习率。通过训练，模型能够利用预训练得到的特征提取能力，快速适应热狗识别任务。
+
+#### 冻结部分层训练与微调对比
+- **冻结特征提取层**：只训练新修改的输出层，此时模型的特征提取部分使用预训练的参数，不进行更新。这种方式训练速度快，但可能无法充分适应新任务。
+- **微调**：解冻部分或全部预训练层，让它们与输出层一起训练，只是这些层的学习率可能设置得较小。这种方式可以使模型更好地适应新任务，但训练时间更长，需要更多的计算资源。
+
+通过对比可以发现，在数据量有限的情况下，微调通常能取得比仅训练输出层更好的性能，因为它允许模型根据新任务调整特征提取方式。
 
 ## torchvision
 
