@@ -130,5 +130,5 @@ curl -X GET \                       # 下载数据集
      "https://datasets-server.huggingface.co/rows?dataset=Lillianwei%2FMdocagent-dataset&config=default&split=train&offset=0&length=100"
 # 发现不行，尝试各种其他方法，最后换了个代理，然后用git clone
 git clone git@hf.co:datasets/Lillianwei/Mdocagent-dataset
-
+好吧这样下的数据集有问题，还是得重新下
 ```
