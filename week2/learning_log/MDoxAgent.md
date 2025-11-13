@@ -123,3 +123,12 @@ cd MDocAgent
 conda create -n mdocagent python=3.12
 conda activate mdocagent
 bash install.sh                     # 这一步又要下载好久嘞
+mkdir data
+cd data
+sudo apt install curl -y
+curl -X GET \                       # 下载数据集
+     "https://datasets-server.huggingface.co/rows?dataset=Lillianwei%2FMdocagent-dataset&config=default&split=train&offset=0&length=100"
+# 发现不行，尝试各种其他方法，最后换了个代理，然后用git clone
+git clone git@hf.co:datasets/Lillianwei/Mdocagent-dataset
+
+```
